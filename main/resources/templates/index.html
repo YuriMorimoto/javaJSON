@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+<script
+	src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+</head>
+<body>
+	<h1>表示テスト</h1>
+
+
+	<h1>JSONで受け取って表示をしています</h1>
+	<table id="wrap">
+		<!-- この中にJSONデータが表示されます -->
+	</table>
+
+	<h1>変更ボタンが押されたら、情報を表示します</h1>
+	<table id="update_colomn"></table>
+
+	<!-- JSON受け取りと表示  -->
+	<script>
+		var data = [];
+		$
+				.ajax({
+					type : 'GET',
+					url : 'data',
+					dataType : 'json'
+				})
+				.then(
+						function(json) {
+							for (var i = 0; i < json.length; i++) {
+								data.push({
+									'id' : json[i].id,
+									'userName' : json[i].userName,
+									'enabled' : json[i].enabled,
+									'admin' : json[i].admin
+								});
+							}
+							;
+							var j = '<tr><th>名前</th><th>有効フラグ</th><th>管理者権限</th><th>変更</th><th>削除</th></tr>';
+							$("table#wrap").append(j);
+							for (var i = 0; i < data.length; i++) {
+								var h = '<tr><td>'
+										+ data[i].userName
+										+ '</td>'
+										+ '<td>'
+										+ data[i].enabled
+										+ '</td>'
+										+ '<td>'
+										+ data[i].admin
+										+ '</td><td><button id="update" name='
+										+ data[i].id
+										+ ' onClick="OnButtonClick(this);">変更</button></td>'
+										+ '<td><button id="delete" name='
+										+ data[i].id
+										+ ' onClick="OnButtonClickDelete(this);">削除</button></td>'
+										+ '</tr>';
+								$("table#wrap").append(h);
+							}
+						});
+		// deleteボタンが押されたら、対象のIDを送信
+		function OnButtonClickDelete(obj) {
+			var id = obj.name;
+			$.ajax({
+				type : "delete",
+				url : "delete",
+				data : {
+					id : id
+				}
+			})
+			// ページリフレッシュ
+			location.href = "index";
+		}
+
+		// #updateボタンが押されたら、JSONを取得して表示させる
+
+		function OnButtonClick(obj) {
+			var id = obj.name;
+			$
+					.ajax({
+						type : "get",
+						url : "update",
+						data : {
+							id : id
+						},
+						// 受け取るときの型を設定しているところ
+						dataType : "json"
+					})
+					.done(
+							function(json) {
+								// テーブル内のHTMLを初期化
+								$("table#update_colomn").html("");
+								data.push({
+									'id' : json.id,
+									'userName' : json.userName,
+									'password' : json.password,
+									'enabled' : json.enabled,
+									'admin' : json.admin
+								});
+								var j = '<tr><th>ID</th><th>名前</th><th>パスワード</th><th>有効フラグ</th><th>管理者権限</th><th>更新</th></tr>';
+								$("table#update_colomn").append(j);
+
+								var h = '<tr><td><input type="text" id="id_update" disabled="disabled" value="'
+										+ json.id
+										+ '"/></td>'
+										+ '<td><input type="text" id="userName_update" value="'
+										+ json.userName
+										+ '" /></td>'
+										+ '<td><input type="text" id="password_update" value="'
+										+ json.password
+										+ '" /></td>'
+										+ '<td><input type="text" id="enabled_update" value="'
+										+ json.enabled
+										+ '" /></td>'
+										+ '<td><input type="text" id="admin_update" value="'
+										+ json.admin
+										+ '" /></td><td><button id="update_done" onClick="OnButtonClickDone(this);">更新</button></td>'
+										+ '</tr>';
+								$("table#update_colomn").append(h);
+							});
+		}
+
+		// 更新ボタンが押されたとき
+		function OnButtonClickDone(obj) {
+			var JSONdata = {
+				id : $("#id_update").val(),
+				userName : $("#userName_update").val(),
+				password : $("#password_update").val(),
+				enabled : $("#enabled_update").val(),
+				admin : $("#admin_update").val()
+			};
+			alert(JSON.stringify(JSONdata));
+
+			$.ajax({
+				type : 'put',
+				url : 'update',
+				data : JSON.stringify(JSONdata),
+				contentType : 'application/JSON',
+				dataType : 'json',
+				acriptCharset : 'utf-8'
+			});
+			// ページリフレッシュ
+			location.href = "index";
+		}
+	</script>
+
+	<h1>入力データをJSON送信します</h1>
+	<p>
+		ユーザー名：<input type="text" id="userName" name="userName" />
+	</p>
+	<p>
+		パスワード：<input type="password" id="password" name="password" />
+	</p>
+	<p>
+		有効フラグ：<select name="enabled" id="enabled">
+			<option value="true">true</option>
+			<option value="false">false</option>
+		</select>
+	</p>
+	<p>
+		管理者権限：<select name="admin" id="admin">
+			<option value="true">true</option>
+			<option value="false">false</option>
+		</select>
+	</p>
+	<p>
+		<button id="button" type="button">登録</button>
+	</p>
+	<!-- 入力情報をJSON形式にしてリクエストする -->
+	<script>
+		$(function() {
+			$("#button").click(function() {
+				var JSONdata = {
+					userName : $("#userName").val(),
+					password : $("#password").val(),
+					enabled : $("#enabled").val(),
+					admin : $("#admin").val()
+				};
+				alert(JSON.stringify(JSONdata));
+
+				$.ajax({
+					type : 'POST',
+					url : 'insert',
+					data : JSON.stringify(JSONdata),
+					contentType : 'application/JSON',
+					dataType : 'json',
+					acriptCharset : 'utf-8'
+				});
+				// ページリフレッシュ
+				location.href = "index";
+			})
+		})
+	</script>
+
+
+</body>
+</html>
