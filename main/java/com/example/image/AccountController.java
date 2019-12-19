@@ -43,7 +43,7 @@ public class AccountController {
 		repository.save(accountEntity);
 	}
 
-	// upload
+	// update
 	@GetMapping("update")
 	@ResponseBody
 	public Optional<AccountEntity> getAccount(@RequestParam String id){
